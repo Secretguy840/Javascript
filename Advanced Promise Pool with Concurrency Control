@@ -1,0 +1,41 @@
+// PromisePool.js - Manages concurrent promises with rate limiting
+class PromisePool {
+  constructor(maxConcurrent = 5) {
+    this.maxConcurrent = maxConcurrent;
+    this.queue = [];
+    this.activeCount = 0;
+  }
+
+  async add(task) {
+    return new Promise((resolve, reject) => {
+      const execute = async () => {
+        this.activeCount++;
+        try {
+          const result = await task();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        } finally {
+          this.activeCount--;
+          this.next();
+        }
+      };
+
+      this.queue.push(execute);
+      if (this.activeCount < this.maxConcurrent) {
+        this.next();
+      }
+    });
+  }
+
+  next() {
+    if (this.queue.length > 0 && this.activeCount < this.maxConcurrent) {
+      const task = this.queue.shift();
+      task();
+    }
+  }
+}
+
+// Usage:
+// const pool = new PromisePool(3);
+// pool.add(async () => fetchData());
