@@ -1,0 +1,79 @@
+// ResilientWebSocket.js
+class ResilientWebSocket {
+  constructor(url, protocols = [], options = {}) {
+    this.url = url;
+    this.protocols = protocols;
+    this.options = {
+      reconnectInterval: 1000,
+      maxReconnectAttempts: 5,
+      ...options
+    };
+    this.reconnectAttempts = 0;
+    this.listeners = {};
+    this._setup();
+  }
+
+  _setup() {
+    this.ws = new WebSocket(this.url, this.protocols);
+
+    this.ws.onopen = (event) => {
+      this.reconnectAttempts = 0;
+      this._callListeners('open', event);
+    };
+
+    this.ws.onmessage = (event) => {
+      this._callListeners('message', event);
+    };
+
+    this.ws.onclose = (event) => {
+      this._callListeners('close', event);
+      if (event.code !== 1000) {
+        this._reconnect();
+      }
+    };
+
+    this.ws.onerror = (event) => {
+      this._callListeners('error', event);
+    };
+  }
+
+  _reconnect() {
+    if (this.reconnectAttempts < this.options.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+      setTimeout(() => this._setup(), this.options.reconnectInterval);
+    } else {
+      this._callListeners('reconnect_failed');
+    }
+  }
+
+  _callListeners(type, event) {
+    if (this.listeners[type]) {
+      this.listeners[type].forEach(listener => listener(event));
+    }
+  }
+
+  on(type, listener) {
+    if (!this.listeners[type]) this.listeners[type] = [];
+    this.listeners[type].push(listener);
+    return this;
+  }
+
+  off(type, listener) {
+    if (this.listeners[type]) {
+      this.listeners[type] = this.listeners[type].filter(l => l !== listener);
+    }
+    return this;
+  }
+
+  send(data) {
+    if (this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(data);
+      return true;
+    }
+    return false;
+  }
+
+  close(code = 1000, reason) {
+    this.ws.close(code, reason);
+  }
+}
