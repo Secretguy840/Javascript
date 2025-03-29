@@ -1,0 +1,31 @@
+// DIContainer.js
+class DIContainer {
+  constructor() {
+    this.services = new Map();
+    this.instances = new Map();
+  }
+
+  register(name, definition, dependencies = []) {
+    this.services.set(name, { definition, dependencies });
+  }
+
+  get(name) {
+    if (this.instances.has(name)) return this.instances.get(name);
+
+    const service = this.services.get(name);
+    if (!service) throw new Error(`Service ${name} not found`);
+
+    const { definition, dependencies } = service;
+    const resolvedDependencies = dependencies.map(dep => this.get(dep));
+    
+    let instance;
+    if (typeof definition === 'function') {
+      instance = new definition(...resolvedDependencies);
+    } else {
+      instance = definition;
+    }
+
+    this.instances.set(name, instance);
+    return instance;
+  }
+}
