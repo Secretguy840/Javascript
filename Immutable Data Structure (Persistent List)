@@ -1,0 +1,42 @@
+// PersistentList.js
+class PersistentList {
+  constructor(values = []) {
+    this._root = values;
+    this._version = 0;
+  }
+
+  get(index) {
+    return this._root[index];
+  }
+
+  push(value) {
+    const newList = new PersistentList([...this._root, value]);
+    newList._version = this._version + 1;
+    return newList;
+  }
+
+  pop() {
+    if (this._root.length === 0) return this;
+    const newList = new PersistentList(this._root.slice(0, -1));
+    newList._version = this._version + 1;
+    return newList;
+  }
+
+  map(fn) {
+    const newList = new PersistentList(this._root.map(fn));
+    newList._version = this._version + 1;
+    return newList;
+  }
+
+  get length() {
+    return this._root.length;
+  }
+
+  get version() {
+    return this._version;
+  }
+
+  toArray() {
+    return [...this._root];
+  }
+}
