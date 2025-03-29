@@ -1,0 +1,45 @@
+// Benchmark.js
+class Benchmark {
+  static async run(func, iterations = 1000, ...args) {
+    const times = [];
+    let result;
+    
+    // Warm-up
+    for (let i = 0; i < 5; i++) {
+      await func(...args);
+    }
+
+    // Benchmark
+    for (let i = 0; i < iterations; i++) {
+      const start = performance.now();
+      result = await func(...args);
+      const end = performance.now();
+      times.push(end - start);
+    }
+
+    const stats = {
+      result,
+      iterations,
+      totalTime: times.reduce((a, b) => a + b, 0),
+      average: times.reduce((a, b) => a + b, 0) / times.length,
+      min: Math.min(...times),
+      max: Math.max(...times),
+      p95: Benchmark._percentile(times, 95),
+      p99: Benchmark._percentile(times, 99)
+    };
+
+    return stats;
+  }
+
+  static _percentile(arr, p) {
+    const sorted = [...arr].sort((a, b) => a - b);
+    const pos = (sorted.length - 1) * p / 100;
+    const base = Math.floor(pos);
+    const rest = pos - base;
+    if (sorted[base + 1] !== undefined) {
+      return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+    } else {
+      return sorted[base];
+    }
+  }
+}
