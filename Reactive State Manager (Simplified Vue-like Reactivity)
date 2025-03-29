@@ -1,0 +1,40 @@
+// Reactive.js - Simple reactivity system
+class Reactive {
+  constructor(obj) {
+    this.dependencies = new Map();
+    return this._createProxy(obj);
+  }
+
+  _createProxy(obj) {
+    const self = this;
+    return new Proxy(obj, {
+      get(target, key) {
+        if (Reactive.currentEffect) {
+          if (!self.dependencies.has(key)) {
+            self.dependencies.set(key, new Set());
+          }
+          self.dependencies.get(key).add(Reactive.currentEffect);
+        }
+        return target[key];
+      },
+      set(target, key, value) {
+        target[key] = value;
+        if (self.dependencies.has(key)) {
+          self.dependencies.get(key).forEach(effect => effect());
+        }
+        return true;
+      }
+    });
+  }
+
+  static effect(callback) {
+    Reactive.currentEffect = callback;
+    callback();
+    Reactive.currentEffect = null;
+  }
+}
+
+// Usage:
+// const state = new Reactive({ count: 0 });
+// Reactive.effect(() => console.log(state.count));
+// state.count++; // Logs: 1
