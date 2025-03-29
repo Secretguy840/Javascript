@@ -1,0 +1,45 @@
+// AdvancedEventEmitter.js
+class AdvancedEventEmitter {
+  constructor() {
+    this.events = {};
+    this.maxListeners = 10;
+  }
+
+  on(event, listener, { once = false, priority = 0 } = {}) {
+    if (!this.events[event]) this.events[event] = [];
+    this.events[event].push({ listener, once, priority });
+    this.events[event].sort((a, b) => b.priority - a.priority);
+    
+    if (this.events[event].length > this.maxListeners) {
+      console.warn(`Possible memory leak for event ${event}`);
+    }
+    return this;
+  }
+
+  once(event, listener, priority = 0) {
+    return this.on(event, listener, { once: true, priority });
+  }
+
+  emit(event, ...args) {
+    if (!this.events[event]) return false;
+    
+    const listeners = [...this.events[event]];
+    for (const { listener, once } of listeners) {
+      listener(...args);
+      if (once) {
+        this.off(event, listener);
+      }
+    }
+    return true;
+  }
+
+  off(event, listenerToRemove) {
+    if (!this.events[event]) return this;
+    
+    this.events[event] = this.events[event].filter(
+      ({ listener }) => listener !== listenerToRemove
+    );
+    
+    return this;
+  }
+}
