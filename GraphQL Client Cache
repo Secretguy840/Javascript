@@ -1,0 +1,44 @@
+// GraphQLCache.js
+class GraphQLCache {
+  constructor({ ttl = 300000 } = {}) {
+    this.cache = new Map();
+    this.ttl = ttl;
+  }
+
+  _hashQuery(query, variables) {
+    return JSON.stringify({ query, variables });
+  }
+
+  get(query, variables) {
+    const key = this._hashQuery(query, variables);
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+
+    if (Date.now() > entry.expiresAt) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry.data;
+  }
+
+  set(query, variables, data) {
+    const key = this._hashQuery(query, variables);
+    this.cache.set(key, {
+      data,
+      expiresAt: Date.now() + this.ttl
+    });
+  }
+
+  clear() {
+    this.cache.clear();
+  }
+
+  invalidate(pattern) {
+    for (const [key] of this.cache) {
+      if (key.includes(pattern)) {
+        this.cache.delete(key);
+      }
+    }
+  }
+}
