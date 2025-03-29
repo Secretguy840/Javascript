@@ -1,0 +1,33 @@
+// WorkerManager.js - Simplifies Web Worker communication
+class WorkerManager {
+  constructor(workerScript) {
+    this.worker = new Worker(workerScript);
+    this.callbacks = new Map();
+    this.idCounter = 0;
+
+    this.worker.onmessage = (event) => {
+      const { id, result, error } = event.data;
+      if (this.callbacks.has(id)) {
+        const { resolve, reject } = this.callbacks.get(id);
+        this.callbacks.delete(id);
+        if (error) {
+          reject(new Error(error));
+        } else {
+          resolve(result);
+        }
+      }
+    };
+  }
+
+  postMessage(message) {
+    return new Promise((resolve, reject) => {
+      const id = ++this.idCounter;
+      this.callbacks.set(id, { resolve, reject });
+      this.worker.postMessage({ id, message });
+    });
+  }
+
+  terminate() {
+    this.worker.terminate();
+  }
+}
