@@ -1,0 +1,31 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Quote Generator</title>
+    <style>
+        button { padding: 10px; }
+        p { font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>Random Quote Generator</h1>
+    <button onclick="generateQuote()">Get Quote</button>
+    <p id="quote"></p>
+
+    <script>
+        const quotes = [
+            "The only limit to our realization of tomorrow is our doubts of today. – Franklin D. Roosevelt",
+            "Life is what happens when you're busy making other plans. – John Lennon",
+            "The purpose of our lives is to be happy. – Dalai Lama",
+            "In the end, it's not the years in your life that count. It's the life in your years. – Abraham Lincoln",
+            "Get busy living or get busy dying. – Stephen King"
+        ];
+
+        function generateQuote() {
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            document.getElementById("quote").textContent = quotes[randomIndex];
+        }
+    </script>
+</body>
+</html>
