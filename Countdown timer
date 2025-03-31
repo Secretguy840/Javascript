@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown Timer</title>
+    <style>
+        input, button { padding: 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Countdown Timer</h1>
+    <label for="datetime">Enter a date and time (YYYY-MM-DD HH:MM:SS):</label>
+    <input type="datetime-local" id="datetime">
+    <button onclick="startTimer()">Start Countdown</button>
+    <h2 id="countdown"></h2>
+
+    <script>
+        function startTimer() {
+            const targetDate = new Date(document.getElementById("datetime").value);
+            const countdownElement = document.getElementById("countdown");
+
+            const interval = setInterval(function() {
+                const now = new Date();
+                const timeLeft = targetDate - now;
+
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    countdownElement.textContent = "Time's up!";
+                } else {
+                    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                    countdownElement.textContent = `Time remaining: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
